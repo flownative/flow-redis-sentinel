@@ -21,12 +21,23 @@
         "ext-zlib": "*",
         "predis/predis": "^1.1"
     },
+    "require-dev": {
+        "mikey179/vfsstream": "~1.6",
+        "phpunit/phpunit": "~8.1"
+    },
     "autoload": {
         "psr-4": {
             "Flownative\\RedisSentinel\\": "Classes"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Flownative\\RedisSentinel\\Tests\\": "Tests"
+        }
+    },
     "extra": {
-        "applied-flow-migrations": []
+        "neos": {
+            "package-key": "Flownative.RedisSentinel"
+        }
     }
 }
