@@ -1,0 +1,11 @@
+Flownative_RedisSentinel_Test:
+  backend: 'Flownative\RedisSentinel\RedisBackend'
+  backendOptions:
+#    hostname: '%env:BEACH_REDIS_HOST%'
+#    password: '%env:BEACH_REDIS_PASSWORD%'
+#    port: 6379
+    database: 0
+    sentinels:
+      - 'tcp://10.101.213.145:26379'
+    service: 'mymaster'
+    password: 'pass'

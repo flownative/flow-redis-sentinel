@@ -1,0 +1,28 @@
+{
+    "name": "flownative/redis-sentinel",
+    "type": "neos-package",
+    "description": "Flow Redis cache backend with Sentinel support",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Robert Lemke",
+            "email": "robert@flownative.com"
+        }
+    ],
+    "support": {
+        "email": "support@flownative.com"
+    },
+    "require": {
+        "neos/flow": "^5.0 || ^6.0 || dev-master",
+        "ext-zlib": "*",
+        "predis/predis": "^1.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Flownative\\RedisSentinel\\": "Classes"
+        }
+    },
+    "extra": {
+        "applied-flow-migrations": []
+    }
+}
