@@ -126,9 +126,6 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
             $status = $this->client->set($this->buildKey('entry:' . $entryIdentifier), $this->compress($data));
         }
 
-        if ($status === false) {
-            $this->verifyRedisVersionIsSupported();
-        }
         $this->client->lRem($this->buildKey('entries'), $entryIdentifier, 0);
         $this->client->rPush($this->buildKey('entries'), [$entryIdentifier]);
 
@@ -489,48 +486,15 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
     }
 
     /**
-     * @return void
-     * @throws CacheException
-     */
-    protected function verifyRedisVersionIsSupported(): void
-    {
-        return;
-        $serverInfo = (array)$this->client->info('SERVER');
-        if (!isset($serverInfo['redis_version'])) {
-            throw new CacheException('Unsupported Redis version, the Redis cache backend needs at least version ' . self::MIN_REDIS_VERSION, 1574777825);
-        }
-        if (version_compare($serverInfo['redis_version'], self::MIN_REDIS_VERSION) < 0) {
-            throw new CacheException('Redis version ' . $serverInfo['redis_version'] . ' not supported, the Redis cache backend needs at least version ' . self::MIN_REDIS_VERSION, 1574777829);
-        }
-    }
-
-    /**
      * Validates that the configured redis backend is accessible and returns some details about its configuration if that's the case
      *
+     * FIXME: Implement
+     *
      * @return Result
-     * @api
      */
     public function getStatus(): Result
     {
-        $result = new Result();
-        return $result;
-        try {
-            $this->verifyRedisVersionIsSupported();
-        } catch (CacheException $exception) {
-            $result->addError(new Error($exception->getMessage(), (int)$exception->getCode(), [], 'Redis Version'));
-            return $result;
-        }
-        $serverInfo = (array)$this->client->info('SERVER');
-        if (isset($serverInfo['redis_version'])) {
-            $result->addNotice(new Notice((string)$serverInfo['redis_version'], null, [], 'Redis version'));
-        }
-        if (isset($serverInfo['tcp_port'])) {
-            $result->addNotice(new Notice((string)$serverInfo['tcp_port'], null, [], 'TCP Port'));
-        }
-        if (isset($serverInfo['uptime_in_seconds'])) {
-            $result->addNotice(new Notice((string)$serverInfo['uptime_in_seconds'], null, [], 'Uptime (seconds)'));
-        }
-        return $result;
+        return new Result();
     }
 
     /**

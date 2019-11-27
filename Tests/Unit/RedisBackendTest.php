@@ -1,7 +1,7 @@
 <?php
-namespace Neos\Cache\Tests\Unit\Backend;
+namespace Flownative\RedisSentinel\Tests\Unit;
 
-include_once(__DIR__ . '/../../BaseTestCase.php');
+include_once(__DIR__ . '/../BaseTestCase.php');
 
 /*
  * This file is part of the Flownative.RedisSentinel package.
@@ -14,13 +14,10 @@ include_once(__DIR__ . '/../../BaseTestCase.php');
  * source code.
  */
 
-use Neos\Cache\Tests\BaseTestCase;
+use Flownative\RedisSentinel\Tests\BaseTestCase;
 
 /**
- * Testcase for the redis cache backend
- *
- * These unit tests rely on a mocked redis client.
- * @requires extension redis
+ * Test case for the Redis Sentinel cache backend
  */
 class RedisBackendTest extends BaseTestCase
 {
