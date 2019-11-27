@@ -18,3 +18,8 @@ simply include `flownative/redis-sentinel` into the dependencies of your Flow or
 ## Usage
 
 tbd.
+
+## Credits
+
+This cache backend was developed by Robert Lemke of Flownative, based on the Neos Flow Redis Backend,
+originally created by Christopher Hlubek and later improved by the Neos core team. 

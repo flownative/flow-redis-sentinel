@@ -1,0 +1,18 @@
+Flownative_Example_CacheWithStandaloneRedis:
+  backend: 'Flownative\RedisSentinel\RedisBackend'
+  backendOptions:
+    hostname: '%env:REDIS_HOST%'
+    password: '%env:REDIS_PASSWORD%'
+    port: 6379
+    database: 0
+
+Flownative_Example_CacheWithRedisSentinel:
+  backend: 'Flownative\RedisSentinel\RedisBackend'
+  backendOptions:
+    sentinels:
+      - 'tcp://10.101.213.145:26379'
+      - 'tcp://10.101.213.146:26379'
+      - 'tcp://10.101.213.147:26379'
+    service: 'mymaster'
+    password: 'password'
+    database: 0
