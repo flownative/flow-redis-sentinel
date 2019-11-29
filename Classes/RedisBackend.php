@@ -502,24 +502,22 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
      */
     private function getRedisClient(): \Predis\Client
     {
+        $options = [
+            'parameters' => [
+                'database' => $this->database
+            ]
+        ];
+
+        if (!empty($this->password)) {
+            $options['parameters']['password'] = $this->password;
+        }
+
         if ($this->sentinels !== []) {
             $connectionParameters = $this->sentinels;
-            $options   = [
-                'replication' => 'sentinel',
-                'service' => $this->service,
-                'parameters' => [
-                    'password' => $this->password,
-                    'database' => $this->database
-                ]
-            ];
+            $options['replication'] = 'sentinel';
+            $options['service'] = $this->service;
         } else {
             $connectionParameters = 'tcp://' . $this->hostname . ':' . $this->port;
-            $options   = [
-                'parameters' => [
-                    'password' => $this->password,
-                    'database' => $this->database
-                ]
-            ];
         }
         return new Predis\Client($connectionParameters, $options);
     }
