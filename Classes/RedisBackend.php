@@ -22,9 +22,6 @@ use Neos\Cache\Backend\RequireOnceFromValueTrait;
 use Neos\Cache\Backend\TaggableBackendInterface;
 use Neos\Cache\Backend\WithStatusInterface;
 use Neos\Cache\EnvironmentConfiguration;
-use Neos\Cache\Exception as CacheException;
-use Neos\Error\Messages\Error;
-use Neos\Error\Messages\Notice;
 use Neos\Error\Messages\Result;
 use Predis;
 use RuntimeException;
@@ -108,7 +105,6 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
      * @param array $tags Tags to associate with this cache entry. If the backend does not support tags, this option can be ignored.
      * @param integer $lifetime Lifetime of this cache entry in seconds. If NULL is specified, the default lifetime is used. "0" means unlimited lifetime.
      * @throws RuntimeException
-     * @throws CacheException
      * @return void
      * @api
      */
@@ -403,11 +399,17 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
      * If at least one Sentinel server is specified, this client operates in Sentinel mode
      * and ignores "hostname" and "port".
      *
-     * @param array $sentinels Sentinel server addresses, eg. ['tcp://10.101.213.145:26379', 'tcp://…']
+     * @param array|string $sentinels Sentinel server addresses, eg. ['tcp://10.101.213.145:26379', 'tcp://…'], or string with comma separated addresses
      */
-    public function setSentinels(array $sentinels): void
+    public function setSentinels($sentinels): void
     {
-        $this->sentinels = $sentinels;
+        if (is_string($sentinels)) {
+            $this->sentinels = explode(',', $sentinels);
+        } elseif(is_array($sentinels)) {
+            $this->sentinels = $sentinels;
+        } else {
+            throw new \InvalidArgumentException(sprintf('setSentinels(): Invalid type %s, string or array expected', gettype($sentinels)), 1575384806);
+        }
     }
 
     /**
