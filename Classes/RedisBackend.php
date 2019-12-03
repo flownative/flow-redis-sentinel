@@ -68,7 +68,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
     /**
      * @var string
      */
-    protected $service;
+    protected $service = 'mymaster';
 
     /**
      * @var integer
