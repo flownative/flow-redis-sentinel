@@ -86,6 +86,11 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
     protected $compressionLevel = 0;
 
     /**
+     * @var string
+     */
+    protected $applicationContextHash = '';
+
+    /**
      * Constructs this backend
      *
      * @param EnvironmentConfiguration $environmentConfiguration
@@ -93,6 +98,10 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
      */
     public function __construct(EnvironmentConfiguration $environmentConfiguration, array $options)
     {
+        if ($environmentConfiguration instanceof EnvironmentConfiguration) {
+            $this->applicationContextHash = md5($environmentConfiguration->getApplicationIdentifier());
+        }
+
         parent::__construct($environmentConfiguration, $options);
         $this->client = $this->getRedisClient();
     }
@@ -234,7 +243,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
      */
     private function buildKey(string $identifier): string
     {
-        return $this->cacheIdentifier . ':' . $identifier;
+        return $this->applicationContextHash . ':' . $this->cacheIdentifier . ':' . $identifier;
     }
 
     /**
