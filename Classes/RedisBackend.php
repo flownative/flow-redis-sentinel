@@ -116,18 +116,18 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
 
         $this->client->multi();
         $lifetime = $lifetime ?? $this->defaultLifetime;
-        if ($lifetime > 0) {
-            $status = $this->client->set($this->buildKey('entry:' . $entryIdentifier), $this->compress($data), 'ex', $lifetime);
+        if ($lifetime >0) {
+            $status = $this->client->set($this->getPrefixedIdentifier('entry:' . $entryIdentifier), $this->compress($data), 'ex', $lifetime);
         } else {
-            $status = $this->client->set($this->buildKey('entry:' . $entryIdentifier), $this->compress($data));
+            $status = $this->client->set($this->getPrefixedIdentifier('entry:' . $entryIdentifier), $this->compress($data));
         }
 
-        $this->client->lRem($this->buildKey('entries'), 0, $entryIdentifier);
-        $this->client->rPush($this->buildKey('entries'), [$entryIdentifier]);
+        $this->client->lRem($this->getPrefixedIdentifier('entries'), 0, $entryIdentifier);
+        $this->client->rPush($this->getPrefixedIdentifier('entries'), [$entryIdentifier]);
 
         foreach ($tags as $tag) {
-            $this->client->sAdd($this->buildKey('tag:' . $tag), [$entryIdentifier]);
-            $this->client->sAdd($this->buildKey('tags:' . $entryIdentifier), [$tag]);
+            $this->client->sAdd($this->getPrefixedIdentifier('tag:' . $tag), [$entryIdentifier]);
+            $this->client->sAdd($this->getPrefixedIdentifier('tags:' . $entryIdentifier), [$tag]);
         }
         $this->client->exec();
     }
@@ -141,7 +141,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
      */
     public function get(string $entryIdentifier)
     {
-        return $this->decompress($this->client->get($this->buildKey('entry:' . $entryIdentifier)));
+        return $this->decompress($this->client->get($this->getPrefixedIdentifier('entry:' . $entryIdentifier)));
     }
 
     /**
@@ -153,7 +153,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
      */
     public function has(string $entryIdentifier): bool
     {
-        return (bool)$this->client->exists($this->buildKey('entry:' . $entryIdentifier));
+        return (bool)$this->client->exists($this->getPrefixedIdentifier('entry:' . $entryIdentifier));
     }
 
     /**
@@ -172,16 +172,16 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
             throw new RuntimeException(sprintf('Cannot remove cache entry because the backend of cache "%s" is frozen.', $this->cacheIdentifier), 1323344192);
         }
         do {
-            $tagsKey = $this->buildKey('tags:' . $entryIdentifier);
+            $tagsKey = $this->getPrefixedIdentifier('tags:' . $entryIdentifier);
             $this->client->watch($tagsKey);
             $tags = $this->client->sMembers($tagsKey);
             $this->client->multi();
-            $this->client->del([$this->buildKey('entry:' . $entryIdentifier)]);
+            $this->client->del([$this->getPrefixedIdentifier('entry:' . $entryIdentifier)]);
             foreach ($tags as $tag) {
-                $this->client->sRem($this->buildKey('tag:' . $tag), $entryIdentifier);
+                $this->client->sRem($this->getPrefixedIdentifier('tag:' . $tag), $entryIdentifier);
             }
-            $this->client->del([$this->buildKey('tags:' . $entryIdentifier)]);
-            $this->client->lRem($this->buildKey('entries'), 0, $entryIdentifier);
+            $this->client->del([$this->getPrefixedIdentifier('tags:' . $entryIdentifier)]);
+            $this->client->lRem($this->getPrefixedIdentifier('entries'), 0, $entryIdentifier);
             /** @var array|bool $result */
             $result = $this->client->exec();
         } while ($result === false);
@@ -214,7 +214,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
         redis.call('DEL', KEYS[1])
         redis.call('DEL', KEYS[2])
         ";
-        $this->client->eval($script, 2, $this->buildKey('entries'), $this->buildKey('frozen'), $this->buildKey(''));
+        $this->client->eval($script, 2, $this->getPrefixedIdentifier('entries'), $this->getPrefixedIdentifier('frozen'), $this->getPrefixedIdentifier(''));
         $this->frozen = null;
     }
 
@@ -226,15 +226,6 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
      */
     public function collectGarbage(): void
     {
-    }
-
-    /**
-     * @param string $identifier
-     * @return string
-     */
-    private function buildKey(string $identifier): string
-    {
-        return $this->cacheIdentifier . ':' . $identifier;
     }
 
     /**
@@ -264,7 +255,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
         end
         return #entries
         ";
-        return $this->client->eval($script, 2, $this->buildKey('tag:' . $tag), $this->buildKey('entries'), $this->buildKey(''));
+        return $this->client->eval($script, 2, $this->getPrefixedIdentifier('tag:' . $tag), $this->getPrefixedIdentifier('entries'), $this->getPrefixedIdentifier(''));
     }
 
     /**
@@ -277,7 +268,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
      */
     public function findIdentifiersByTag(string $tag): array
     {
-        return $this->client->sMembers($this->buildKey('tag:' . $tag));
+        return $this->client->sMembers($this->getPrefixedIdentifier('tag:' . $tag));
     }
 
     /**
@@ -301,7 +292,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
      */
     public function key()
     {
-        $entryIdentifier = $this->client->lIndex($this->buildKey('entries'), $this->entryCursor);
+        $entryIdentifier = $this->client->lIndex($this->getPrefixedIdentifier('entries'), $this->entryCursor);
         if ($entryIdentifier !== false && !$this->has($entryIdentifier)) {
             return false;
         }
@@ -342,14 +333,14 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
             throw new RuntimeException(sprintf('Cannot add or modify cache entry because the backend of cache "%s" is frozen.', $this->cacheIdentifier), 1574777766);
         }
         do {
-            $entriesKey = $this->buildKey('entries');
+            $entriesKey = $this->getPrefixedIdentifier('entries');
             $this->client->watch($entriesKey);
             $entries = $this->client->lRange($entriesKey, 0, -1);
             $this->client->multi();
             foreach ($entries as $entryIdentifier) {
-                $this->client->persist($this->buildKey('entry:' . $entryIdentifier));
+                $this->client->persist($this->getPrefixedIdentifier('entry:' . $entryIdentifier));
             }
-            $this->client->set($this->buildKey('frozen'), '1');
+            $this->client->set($this->getPrefixedIdentifier('frozen'), '1');
             /** @var array|bool $result */
             $result = $this->client->exec();
         } while ($result === false);
@@ -364,7 +355,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
     public function isFrozen(): bool
     {
         if (null === $this->frozen) {
-            $this->frozen = (bool)$this->client->exists($this->buildKey('frozen'));
+            $this->frozen = (bool)$this->client->exists($this->getPrefixedIdentifier('frozen'));
         }
         return $this->frozen;
     }
