@@ -17,7 +17,7 @@
         "email": "support@flownative.com"
     },
     "require": {
-        "neos/cache": "5.* || 6.* || 7.*",
+        "neos/cache": "> 6.3 || 7.*",
         "ext-zlib": "*",
         "predis/predis": "^1.1"
     },
