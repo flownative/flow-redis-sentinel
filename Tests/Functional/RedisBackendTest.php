@@ -17,7 +17,7 @@ include_once(__DIR__ . '/../BaseTestCase.php');
  * source code.
  */
 
-use Neos\Cache\Backend\RedisBackend;
+use Flownative\RedisSentinel\RedisBackend;
 use Neos\Cache\EnvironmentConfiguration;
 use Neos\Cache\Tests\BaseTestCase;
 use Neos\Cache\Frontend\FrontendInterface;
