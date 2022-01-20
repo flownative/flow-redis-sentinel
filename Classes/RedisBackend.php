@@ -24,6 +24,7 @@ use Neos\Cache\Backend\WithStatusInterface;
 use Neos\Cache\EnvironmentConfiguration;
 use Neos\Error\Messages\Result;
 use Predis;
+use Predis\Collection\Iterator;
 use RuntimeException;
 
 /**
@@ -33,17 +34,12 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
 {
     use RequireOnceFromValueTrait;
 
-    public const MIN_REDIS_VERSION = '2.6.0';
+    public const MIN_REDIS_VERSION = '2.8.0';
 
     /**
      * @var Predis\Client
      */
     protected $client;
-
-    /**
-     * @var integer Cursor used for iterating over cache entries
-     */
-    protected $entryCursor = 0;
 
     /**
      * @var boolean|null
@@ -86,6 +82,13 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
     protected $compressionLevel = 0;
 
     /**
+     * @var Iterator\Keyspace
+     */
+    protected $entryKeyspaceIterator = null;
+
+    protected $entryKeyspaceIteratorKeyPrefixLength = 0;
+
+    /**
      * Constructs this backend
      *
      * @param EnvironmentConfiguration $environmentConfiguration
@@ -116,14 +119,11 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
 
         $this->client->multi();
         $lifetime = $lifetime ?? $this->defaultLifetime;
-        if ($lifetime >0) {
+        if ($lifetime > 0) {
             $status = $this->client->set($this->getPrefixedIdentifier('entry:' . $entryIdentifier), $this->compress($data), 'ex', $lifetime);
         } else {
             $status = $this->client->set($this->getPrefixedIdentifier('entry:' . $entryIdentifier), $this->compress($data));
         }
-
-        $this->client->lRem($this->getPrefixedIdentifier('entries'), 0, $entryIdentifier);
-        $this->client->rPush($this->getPrefixedIdentifier('entries'), [$entryIdentifier]);
 
         foreach ($tags as $tag) {
             $this->client->sAdd($this->getPrefixedIdentifier('tag:' . $tag), [$entryIdentifier]);
@@ -176,12 +176,11 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
             $this->client->watch($tagsKey);
             $tags = $this->client->sMembers($tagsKey);
             $this->client->multi();
-            $this->client->del([$this->getPrefixedIdentifier('entry:' . $entryIdentifier)]);
+                $this->client->del([$this->getPrefixedIdentifier('entry:' . $entryIdentifier)]);
             foreach ($tags as $tag) {
                 $this->client->sRem($this->getPrefixedIdentifier('tag:' . $tag), $entryIdentifier);
             }
             $this->client->del([$this->getPrefixedIdentifier('tags:' . $entryIdentifier)]);
-            $this->client->lRem($this->getPrefixedIdentifier('entries'), 0, $entryIdentifier);
             /** @var array|bool $result */
             $result = $this->client->exec();
         } while ($result === false);
@@ -201,20 +200,27 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
      */
     public function flush(): void
     {
+        // language=lua
         $script = "
-        local entries = redis.call('LRANGE',KEYS[1],0,-1)
-        for k1,entryIdentifier in ipairs(entries) do
-            redis.call('DEL', ARGV[1]..'entry:'..entryIdentifier)
-            local tags = redis.call('SMEMBERS', ARGV[1]..'tags:'..entryIdentifier)
-            for k2,tagName in ipairs(tags) do
-                redis.call('DEL', ARGV[1]..'tag:'..tagName)
+        local cursor = 0
+        repeat
+            local result = redis.call('SCAN', cursor, 'MATCH', ARGV[1])
+            for _,entryIdentifier in ipairs(result[2]) do
+                redis.call('DEL', entryIdentifier)
             end
-            redis.call('DEL', ARGV[1]..'tags:'..entryIdentifier)
-        end
+            cursor = tonumber(result[1])
+        until cursor == 0
+
         redis.call('DEL', KEYS[1])
-        redis.call('DEL', KEYS[2])
         ";
-        $this->client->eval($script, 2, $this->getPrefixedIdentifier('entries'), $this->getPrefixedIdentifier('frozen'), $this->getPrefixedIdentifier(''));
+
+        $this->client->eval(
+            $script,
+            1,
+            $this->getPrefixedIdentifier('frozen'),
+            $this->getPrefixedIdentifier('*'),
+            $this->getPrefixedIdentifier('')
+        );
         $this->frozen = null;
     }
 
@@ -242,6 +248,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
             throw new RuntimeException(sprintf('Cannot add or modify cache entry because the backend of cache "%s" is frozen.', $this->cacheIdentifier), 1574777747);
         }
 
+        // language=lua
         $script = "
         local entries = redis.call('SMEMBERS', KEYS[1])
         for k1,entryIdentifier in ipairs(entries) do
@@ -251,11 +258,16 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
                 redis.call('SREM', ARGV[1]..'tag:'..tagName, entryIdentifier)
             end
             redis.call('DEL', ARGV[1]..'tags:'..entryIdentifier)
-            redis.call('LREM', KEYS[2], 0, entryIdentifier)
         end
         return #entries
         ";
-        return $this->client->eval($script, 2, $this->getPrefixedIdentifier('tag:' . $tag), $this->getPrefixedIdentifier('entries'), $this->getPrefixedIdentifier(''));
+
+        return $this->client->eval(
+            $script,
+            1,
+            $this->getPrefixedIdentifier('tag:' . $tag),
+            $this->getPrefixedIdentifier('')
+        );
     }
 
     /**
@@ -276,7 +288,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
      */
     public function current()
     {
-        return $this->get($this->key());
+        return $this->get(substr($this->getEntryKeyspaceIterator()->current(), $this->entryKeyspaceIteratorKeyPrefixLength));
     }
 
     /**
@@ -284,7 +296,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
      */
     public function next()
     {
-        $this->entryCursor++;
+        $this->getEntryKeyspaceIterator()->next();
     }
 
     /**
@@ -292,12 +304,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
      */
     public function key()
     {
-        $entryIdentifier = $this->client->lIndex($this->getPrefixedIdentifier('entries'), $this->entryCursor);
-
-        if ($entryIdentifier === null || !$this->has($entryIdentifier)) {
-            return false;
-        }
-        return $entryIdentifier;
+        return substr($this->getEntryKeyspaceIterator()->current(), $this->entryKeyspaceIteratorKeyPrefixLength);
     }
 
     /**
@@ -305,7 +312,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
      */
     public function valid(): bool
     {
-        return $this->key() !== false;
+        return $this->getEntryKeyspaceIterator()->valid();
     }
 
     /**
@@ -313,7 +320,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
      */
     public function rewind()
     {
-        $this->entryCursor = 0;
+        $this->getEntryKeyspaceIterator()->rewind();
     }
 
     /**
@@ -515,4 +522,14 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
         }
         return new Predis\Client($connectionParameters, $options);
     }
+
+    private function getEntryKeyspaceIterator()
+    {
+        if (!$this->entryKeyspaceIterator instanceof Iterator\Keyspace) {
+            $this->entryKeyspaceIterator = new Iterator\Keyspace($this->client, $this->getPrefixedIdentifier('entry:*'));
+            $this->entryKeyspaceIteratorKeyPrefixLength = strlen($this->getPrefixedIdentifier('entry')) + 1;
+        }
+        return $this->entryKeyspaceIterator;
+    }
+
 }
