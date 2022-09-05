@@ -1,8 +1,25 @@
-<?xml version="1.0"?>
-<phpunit bootstrap="Tests/PhpUnitBootstrap.php">
+<?xml version="1.0" encoding="utf-8"?>
+<phpunit
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+    bootstrap="vendor/autoload.php"
+>
+    <php>
+        <ini name="error_reporting" value="E_ALL"/>
+    </php>
+
     <testsuites>
-        <testsuite name="all">
-            <directory>Tests</directory>
+        <testsuite name="flownative/redis-sentinel unit tests">
+            <directory>./Tests/Unit/</directory>
+        </testsuite>
+        <testsuite name="flownative/redis-sentinel functional tests">
+            <directory>./Tests/Functional/</directory>
         </testsuite>
     </testsuites>
+
+    <filter>
+        <whitelist>
+            <directory suffix=".php">./Classes</directory>
+        </whitelist>
+    </filter>
 </phpunit>
