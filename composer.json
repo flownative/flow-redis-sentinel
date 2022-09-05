@@ -20,7 +20,7 @@
         "neos/cache": "> 6.3 || 7.*",
         "neos/cache": "6.* || 7.* || 8.*",
         "ext-zlib": "*",
-        "predis/predis": "^1.1",
+        "predis/predis": "^2.0",
         "php": "7.4.* || 8.0.* || 8.1.*"
     },
     "require-dev": {
