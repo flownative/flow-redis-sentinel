@@ -72,7 +72,8 @@ most default configurations).
 
 ## Tests
 
-You can adjust the host used in the functional tests using the environmenr variable `REDIS_HOST`;
+You can adjust the host used in the functional tests using the environment 
+variable `REDIS_HOST`;
 
 ## Credits
 
