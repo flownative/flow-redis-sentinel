@@ -1,16 +1,14 @@
 <?php
 declare(strict_types=1);
-
-namespace Flownative\RedisSentinel\Tests\Unit;
+namespace Flownative\RedisSentinel\Tests\Functional;
 
 include_once(__DIR__ . '/../BaseTestCase.php');
 
 /*
- * This file is part of the Neos.Cache package.
- * The tests base on Neos\Cache\Tests\Functional\Backend\RedisBackendTest of neos/cache
+ * This file is part of the Flownative.RedisSentinel package.
  *
- *
- * (c) Contributors of the Neos Project - www.neos.io
+ * Copyright (c) Robert Lemke, Flownative GmbH
+ * Copyright (c) Neos project contributors
  *
  * This package is Open Source Software. For the full copyright and license
  * information, please view the LICENSE file which was distributed with this
@@ -18,8 +16,8 @@ include_once(__DIR__ . '/../BaseTestCase.php');
  */
 
 use Flownative\RedisSentinel\RedisBackend;
+use Flownative\RedisSentinel\Tests\BaseTestCase;
 use Neos\Cache\EnvironmentConfiguration;
-use Neos\Cache\Tests\BaseTestCase;
 use Neos\Cache\Frontend\FrontendInterface;
 
 /**
@@ -30,8 +28,6 @@ use Neos\Cache\Frontend\FrontendInterface;
  * no side effects on non-related cache entries.
  *
  * Tests require Redis listening on 127.0.0.1:6379.
- *
- * @requires extension redis
  */
 class RedisBackendTest extends BaseTestCase
 {
@@ -53,17 +49,22 @@ class RedisBackendTest extends BaseTestCase
     protected function setUp(): void
     {
         $redisHost = getenv('REDIS_HOST') !== false ? getenv('REDIS_HOST') : '127.0.0.1';
+        $redisPort = (int)(getenv('REDIS_PORT') !== false ? getenv('REDIS_PORT') : '6379');
 
         try {
-            if (!@fsockopen($redisHost, 6379)) {
-                $this->markTestSkipped('redis server not reachable');
+            if (!@fsockopen($redisHost, $redisPort)) {
+                $this->markTestSkipped('Redis server not reachable at ' . $redisHost . ':' . $redisPort);
             }
         } catch (\Exception $e) {
-            $this->markTestSkipped('redis server not reachable');
+            $this->markTestSkipped('Redis server not reachable at ' . $redisHost . ':' . $redisPort);
         }
         $this->backend = new RedisBackend(
             new EnvironmentConfiguration('Redis a wonderful color Testing', '/some/path', PHP_MAXPATHLEN),
-            ['hostname' => $redisHost, 'database' => 0]
+            [
+                'hostname' => $redisHost,
+                'port' => $redisPort,
+                'database' => 0
+            ]
         );
         $this->cache = $this->createMock(FrontendInterface::class);
         $this->cache->expects(self::any())->method('getIdentifier')->will(self::returnValue('TestCache'));
