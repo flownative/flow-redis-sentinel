@@ -35,7 +35,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
 
     protected Predis\Client $client;
 
-    protected bool|null $frozen = null;
+    protected ?bool $frozen = null;
     protected string $hostname = '127.0.0.1';
     protected int $port = 6379;
     protected array $sentinels = [];
@@ -43,7 +43,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
     protected int $database = 0;
     protected string $password = '';
     protected int $compressionLevel = 0;
-    protected Iterator\Keyspace|null $entryKeyspaceIterator = null;
+    protected ?Iterator\Keyspace $entryKeyspaceIterator = null;
     protected int $entryKeyspaceIteratorKeyPrefixLength = 0;
 
     /**
