@@ -31,7 +31,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
 {
     use RequireOnceFromValueTrait;
 
-    public const MIN_REDIS_VERSION = '2.8.0';
+    public const MIN_REDIS_VERSION = '5.0.0';
 
     protected Predis\Client $client;
 
