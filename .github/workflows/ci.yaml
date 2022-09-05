@@ -18,19 +18,13 @@ jobs:
 
     strategy:
       matrix:
-        os:
-          - ubuntu-latest
-
-        php-version:
-          - "7.4"
-          - "8.0"
-
+        os: [ ubuntu-latest ]
+        php-version: [ 7.4, 8.0 ]
+        redis-version: [ 5 ]
         compiler:
           - default
-
         dependencies:
           - highest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -69,6 +63,11 @@ jobs:
 
       - name: Show modules
         run: php -i; php -m
+
+      - name: Start Redis
+        uses: supercharge/redis-github-action@1.4.0
+        with:
+          redis-version: ${{ matrix.redis-version }}
 
       - name: Run tests with phpunit
         run: vendor/bin/phpunit --coverage-clover=coverage.xml
