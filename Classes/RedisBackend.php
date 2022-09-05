@@ -104,8 +104,8 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
      * @param string $data The data to be stored
      * @param array $tags Tags to associate with this cache entry. If the backend does not support tags, this option can be ignored.
      * @param integer $lifetime Lifetime of this cache entry in seconds. If NULL is specified, the default lifetime is used. "0" means unlimited lifetime.
-     * @throws RuntimeException
      * @return void
+     * @throws RuntimeException
      * @api
      */
     public function set(string $entryIdentifier, string $data, array $tags = [], int $lifetime = null): void
@@ -116,13 +116,13 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
 
         $this->client->multi();
         $lifetime = $lifetime ?? $this->defaultLifetime;
-        if ($lifetime >0) {
+        if ($lifetime > 0) {
             $status = $this->client->set($this->getPrefixedIdentifier('entry:' . $entryIdentifier), $this->compress($data), 'ex', $lifetime);
         } else {
             $status = $this->client->set($this->getPrefixedIdentifier('entry:' . $entryIdentifier), $this->compress($data));
         }
 
-        $this->client->lRem($this->getPrefixedIdentifier('entries'), $entryIdentifier, 0);
+        $this->client->lRem($this->getPrefixedIdentifier('entries'), 0, $entryIdentifier);
         $this->client->rPush($this->getPrefixedIdentifier('entries'), [$entryIdentifier]);
 
         foreach ($tags as $tag) {
@@ -162,8 +162,8 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
      * old entries for the identifier still exist, they are removed as well.
      *
      * @param string $entryIdentifier Specifies the cache entry to remove
-     * @throws RuntimeException
      * @return boolean true if (at least) an entry could be removed or false if no entry was found
+     * @throws RuntimeException
      * @api
      */
     public function remove(string $entryIdentifier): bool
@@ -181,7 +181,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
                 $this->client->sRem($this->getPrefixedIdentifier('tag:' . $tag), $entryIdentifier);
             }
             $this->client->del([$this->getPrefixedIdentifier('tags:' . $entryIdentifier)]);
-            $this->client->lRem($this->getPrefixedIdentifier('entries'), $entryIdentifier, 0);
+            $this->client->lRem($this->getPrefixedIdentifier('entries'), 0, $entryIdentifier);
             /** @var array|bool $result */
             $result = $this->client->exec();
         } while ($result === false);
@@ -195,8 +195,8 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
      * The flush method will use the EVAL command to flush all entries and tags for this cache
      * in an atomic way.
      *
-     * @throws RuntimeException
      * @return void
+     * @throws RuntimeException
      * @api
      */
     public function flush(): void
@@ -232,8 +232,8 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
      * Removes all cache entries of this cache which are tagged by the specified tag.
      *
      * @param string $tag The tag the entries must have
-     * @throws RuntimeException
      * @return integer The number of entries which have been affected by this flush
+     * @throws RuntimeException
      * @api
      */
     public function flushByTag(string $tag): int
@@ -337,8 +337,8 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
      *
      * A frozen backend can only be thawn by calling the flush() method.
      *
-     * @throws RuntimeException
      * @return void
+     * @throws RuntimeException
      */
     public function freeze(): void
     {
@@ -409,7 +409,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
     {
         if (is_string($sentinels)) {
             $this->sentinels = explode(',', $sentinels);
-        } elseif(is_array($sentinels)) {
+        } elseif (is_array($sentinels)) {
             $this->sentinels = $sentinels;
         } else {
             throw new \InvalidArgumentException(sprintf('setSentinels(): Invalid type %s, string or array expected', gettype($sentinels)), 1575384806);
@@ -471,7 +471,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
         if (empty($value)) {
             return false;
         }
-        return $this->useCompression() ? gzdecode((string) $value) : $value;
+        return $this->useCompression() ? gzdecode((string)$value) : $value;
     }
 
     /**
