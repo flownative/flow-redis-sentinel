@@ -19,7 +19,6 @@ use RuntimeException;
 
 /**
  * The mother of all test cases.
- *
  */
 abstract class BaseTestCase extends TestCase
 {
