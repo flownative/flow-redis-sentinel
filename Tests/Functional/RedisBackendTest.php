@@ -16,8 +16,8 @@ include_once(__DIR__ . '/../BaseTestCase.php');
  */
 
 use Flownative\RedisSentinel\RedisBackend;
+use Flownative\RedisSentinel\Tests\BaseTestCase;
 use Neos\Cache\EnvironmentConfiguration;
-use Neos\Cache\Tests\BaseTestCase;
 use Neos\Cache\Frontend\FrontendInterface;
 
 /**
@@ -53,10 +53,10 @@ class RedisBackendTest extends BaseTestCase
 
         try {
             if (!@fsockopen($redisHost, $redisPort)) {
-                $this->markTestSkipped('redis server not reachable');
+                $this->markTestSkipped('Redis server not reachable at ' . $redisHost . ':' . $redisPort);
             }
         } catch (\Exception $e) {
-            $this->markTestSkipped('redis server not reachable');
+            $this->markTestSkipped('Redis server not reachable at ' . $redisHost . ':' . $redisPort);
         }
         $this->backend = new RedisBackend(
             new EnvironmentConfiguration('Redis a wonderful color Testing', '/some/path', PHP_MAXPATHLEN),
