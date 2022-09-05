@@ -17,6 +17,12 @@
         </testsuite>
     </testsuites>
 
+    <testsuites>
+        <testsuite name="flownative/redis-sentinel functional tests">
+            <directory>./Tests/Functional/</directory>
+        </testsuite>
+    </testsuites>
+
     <filter>
         <whitelist>
             <directory suffix=".php">./Classes</directory>
