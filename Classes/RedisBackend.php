@@ -6,8 +6,8 @@ namespace Flownative\RedisSentinel;
 /*
  * This file is part of the Flownative.RedisSentinel package.
  *
- * Copyright (c) 2019 Robert Lemke, Flownative GmbH
- * Copyright (c) 2015 Neos project contributors
+ * Copyright (c) Robert Lemke, Flownative GmbH
+ * Copyright (c) Neos project contributors
  *
  * This package is Open Source Software. For the full copyright and license
  * information, please view the LICENSE file which was distributed with this
