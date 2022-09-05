@@ -579,7 +579,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
     /**
      * @throws \Throwable
      */
-    private function handleThrowable(\Throwable|\Exception $throwable): void
+    private function handleThrowable(\Throwable $throwable): void
     {
         $messageHash = md5($throwable->getMessage());
         if (!$this->deduplicateErrors || !array_key_exists($messageHash, static::$loggedErrors)) {
