@@ -24,7 +24,6 @@ jobs:
         compiler:
           - default
         dependencies:
-          - lowest
           - highest
     steps:
       - name: Checkout
