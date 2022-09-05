@@ -4,12 +4,14 @@
 
 # Flow Redis Cache Backend with Sentinel Support
 
-This package provides a Redis cache backend with [Sentinel](https://redis.io/topics/sentinel) support.
+This package provides a Redis cache backend with
+[Sentinel](https://redis.io/topics/sentinel) support.
 
 ## Installation
 
-The package is installed as a regular Flow package via Composer. For your existing project,
-simply include `flownative/redis-sentinel` into the dependencies of your Flow or Neos distribution:
+The package is installed as a regular Flow package via Composer. For your
+existing project, simply include `flownative/redis-sentinel` into the
+dependencies of your Flow or Neos distribution:
 
 ```bash
     $ composer require flownative/redis-sentinel:0.*
@@ -17,54 +19,59 @@ simply include `flownative/redis-sentinel` into the dependencies of your Flow or
 
 ## Usage
 
-The `RedisBackend` contained in this package can be used as a drop-in-replacement for the Redis backend
-provided by the neos/cache package.
+The `RedisBackend` contained in this package can be used as a
+drop-in-replacement for the Redis backend provided by the neos/cache package.
 
-For regular use with a standalone Redis server, provide configuration in your `Caches.yaml` like so:
+For regular use with a standalone Redis server, provide configuration in your
+`Caches.yaml` like so:
 
 ```yaml
 Flow_Mvc_Routing_Route:
-  backend: 'Flownative\RedisSentinel\RedisBackend'
-  backendOptions: &redisBackendOptions
-    hostname: '%env:REDIS_HOST%'
-    password: '%env:REDIS_PASSWORD%'
-    port: '%env:REDIS_PORT%'
-    database: 0
+    backend: 'Flownative\RedisSentinel\RedisBackend'
+    backendOptions: &redisBackendOptions
+        hostname: '%env:REDIS_HOST%'
+        password: '%env:REDIS_PASSWORD%'
+        port: '%env:REDIS_PORT%'
+        database: 0
 
 Flow_Mvc_Routing_Resolve:
-  backend: 'Flownative\RedisSentinel\RedisBackend'
-  backendOptions: *redisBackendOptions
-…
+    backend: 'Flownative\RedisSentinel\RedisBackend'
+    backendOptions: *redisBackendOptions
+    …
 ```
 
-Of course you can also set concrete values instead of using environment variables.
+Of course you can also set concrete values instead of using environment
+variables.
 
-When Redis is running in a high availability setup with Sentinel servers, you need to configure the
-Redis Backend to access the Sentinel servers instead of the actual Redis nodes. Depending on your
-setup, this may look like the following:
+When Redis is running in a high availability setup with Sentinel servers, you
+need to configure the Redis Backend to access the Sentinel servers instead of
+the actual Redis nodes.
+
+Depending on your setup, this may look like the following:
 
 ```yaml
 Flow_Mvc_Routing_Route:
-  backend: 'Flownative\RedisSentinel\RedisBackend'
-  backendOptions: &backendOptions
-    sentinels:
-      - 'tcp://10.101.213.145:26379'
-      - 'tcp://10.101.213.146:26379'
-      - 'tcp://10.101.213.147:26379'
-    service: 'mymaster'
-    password: 'a-very-long-password'
-    database: 0
+    backend: 'Flownative\RedisSentinel\RedisBackend'
+    backendOptions: &backendOptions
+        sentinels:
+            - 'tcp://10.101.213.145:26379'
+            - 'tcp://10.101.213.146:26379'
+            - 'tcp://10.101.213.147:26379'
+        service: 'mymaster'
+        password: 'a-very-long-password'
+        database: 0
 
 Flow_Mvc_Routing_Resolve:
-  backend: 'Flownative\RedisSentinel\RedisBackend'
-  backendOptions: *backendOptions
-…
+    backend: 'Flownative\RedisSentinel\RedisBackend'
+    backendOptions: *backendOptions
+    …
 ``` 
 
-Note that "service" is the name of your Redis cluster (which is "mymaster" in most default
-configurations).
+Note that "service" is the name of your Redis cluster (which is "mymaster" in
+most default configurations).
 
 ## Credits
 
-This cache backend was developed by Robert Lemke of Flownative, based on the Neos Flow Redis Backend,
-originally created by Christopher Hlubek and later improved by the Neos core team. 
+This cache backend was developed by Robert Lemke of Flownative, based on the
+Neos Flow Redis Backend, originally created by Christopher Hlubek and later
+improved by the Neos core team. 
