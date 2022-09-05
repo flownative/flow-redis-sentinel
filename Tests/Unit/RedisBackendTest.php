@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 namespace Flownative\RedisSentinel\Tests\Unit;
 
 include_once(__DIR__ . '/../BaseTestCase.php');
