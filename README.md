@@ -70,6 +70,11 @@ Flow_Mvc_Routing_Resolve:
 Note that "service" is the name of your Redis cluster (which is "mymaster" in
 most default configurations).
 
+## Tests
+
+You can adjust the host used in the functional tests using the environment 
+variable `REDIS_HOST`;
+
 ## Credits
 
 This cache backend was developed by Robert Lemke of Flownative, based on the
