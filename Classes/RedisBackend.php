@@ -27,70 +27,26 @@ use Predis;
 use Predis\Collection\Iterator;
 use RuntimeException;
 
-/**
- * Class RedisBackend
- */
 class RedisBackend extends IndependentAbstractBackend implements TaggableBackendInterface, IterableBackendInterface, FreezableBackendInterface, PhpCapableBackendInterface, WithStatusInterface
 {
     use RequireOnceFromValueTrait;
 
     public const MIN_REDIS_VERSION = '2.8.0';
 
-    /**
-     * @var Predis\Client
-     */
-    protected $client;
+    protected Predis\Client $client;
+
+    protected bool|null $frozen = null;
+    protected string $hostname = '127.0.0.1';
+    protected int $port = 6379;
+    protected array $sentinels = [];
+    protected string $service = 'mymaster';
+    protected int $database = 0;
+    protected string $password = '';
+    protected int $compressionLevel = 0;
+    protected Iterator\Keyspace|null $entryKeyspaceIterator = null;
+    protected int $entryKeyspaceIteratorKeyPrefixLength = 0;
 
     /**
-     * @var boolean|null
-     */
-    protected $frozen;
-
-    /**
-     * @var string
-     */
-    protected $hostname = '127.0.0.1';
-
-    /**
-     * @var integer
-     */
-    protected $port = 6379;
-
-    /**
-     * @var array
-     */
-    protected $sentinels = [];
-
-    /**
-     * @var string
-     */
-    protected $service = 'mymaster';
-
-    /**
-     * @var integer
-     */
-    protected $database = 0;
-
-    /**
-     * @var string
-     */
-    protected $password = '';
-
-    /**
-     * @var integer
-     */
-    protected $compressionLevel = 0;
-
-    /**
-     * @var Iterator\Keyspace
-     */
-    protected $entryKeyspaceIterator = null;
-
-    protected $entryKeyspaceIteratorKeyPrefixLength = 0;
-
-    /**
-     * Constructs this backend
-     *
      * @param EnvironmentConfiguration $environmentConfiguration
      * @param array $options Configuration options - depends on the actual backend
      */
@@ -179,7 +135,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
             $this->client->watch($tagsKey);
             $tags = $this->client->sMembers($tagsKey);
             $this->client->multi();
-                $this->client->del([$this->getPrefixedIdentifier('entry:' . $entryIdentifier)]);
+            $this->client->del([$this->getPrefixedIdentifier('entry:' . $entryIdentifier)]);
             foreach ($tags as $tag) {
                 $this->client->sRem($this->getPrefixedIdentifier('tag:' . $tag), $entryIdentifier);
             }
@@ -299,41 +255,30 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
         return $this->client->sMembers($this->getPrefixedIdentifier('tag:' . $tag));
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\ReturnTypeWillChange]
     public function current()
     {
         return $this->get(substr($this->getEntryKeyspaceIterator()->current(), $this->entryKeyspaceIteratorKeyPrefixLength));
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\ReturnTypeWillChange]
     public function next()
     {
         $this->getEntryKeyspaceIterator()->next();
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\ReturnTypeWillChange]
     public function key()
     {
         return substr($this->getEntryKeyspaceIterator()->current(), $this->entryKeyspaceIteratorKeyPrefixLength);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function valid(): bool
     {
         return $this->getEntryKeyspaceIterator()->valid();
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[\ReturnTypeWillChange]
     public function rewind()
     {
         $this->getEntryKeyspaceIterator()->rewind();

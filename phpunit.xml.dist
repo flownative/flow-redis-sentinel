@@ -9,9 +9,6 @@
     </php>
 
     <testsuites>
-        <testsuite name="flownative/redis-sentinel unit tests">
-            <directory>./Tests/Unit/</directory>
-        </testsuite>
         <testsuite name="flownative/redis-sentinel functional tests">
             <directory>./Tests/Functional/</directory>
         </testsuite>
