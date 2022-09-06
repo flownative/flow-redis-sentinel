@@ -93,6 +93,18 @@ Flow_Mvc_Routing_Route:
         deduplicateErrors: false
 ```
 
+If you don't want errors being logged – for example, because you log errors via
+the MultiBackend – you can turn off logging for this cache backend:
+
+```yaml
+Flow_Mvc_Routing_Route:
+    backend: 'Flownative\RedisSentinel\RedisBackend'
+    backendOptions:
+        database: 0
+        …
+        logErrors: false
+```
+
 ## Tests
 
 You can adjust the host, port and password used in the functional tests 

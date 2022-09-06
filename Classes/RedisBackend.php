@@ -53,6 +53,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
     protected ?Iterator\Keyspace $entryKeyspaceIterator = null;
     protected int $entryKeyspaceIteratorKeyPrefixLength = 0;
     protected bool $deduplicateErrors = true;
+    protected bool $logErrors = true;
 
     protected static array $loggedErrors = [];
 
@@ -65,7 +66,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
         parent::__construct($environmentConfiguration, $options);
         $this->client = $this->getRedisClient();
 
-        if (class_exists('Neos\Flow\Core\Bootstrap') && Bootstrap::$staticObjectManager instanceof ObjectManagerInterface) {
+        if ($this->logErrors && class_exists(Bootstrap::class) && Bootstrap::$staticObjectManager instanceof ObjectManagerInterface) {
             $this->logger = Bootstrap::$staticObjectManager->get(LoggerInterface::class);
             $this->throwableStorage = Bootstrap::$staticObjectManager->get(ThrowableStorageInterface::class);
         }
@@ -498,6 +499,14 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
     }
 
     /**
+     * @param bool $logErrors
+     */
+    public function setLogErrors(bool $logErrors): void
+    {
+        $this->logErrors = $logErrors;
+    }
+
+    /**
      * @param string|bool $value
      * @return string|bool
      */
@@ -583,7 +592,9 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
     {
         $messageHash = md5($throwable->getMessage());
         if (!$this->deduplicateErrors || !array_key_exists($messageHash, static::$loggedErrors)) {
-            $this->logger && $this->logger->error($this->throwableStorage->logThrowable($throwable), LogEnvironment::fromMethodName(__METHOD__));
+            if ($this->logErrors && $this->logger && $this->throwableStorage) {
+                $this->logger && $this->logger->error($this->throwableStorage->logThrowable($throwable), LogEnvironment::fromMethodName(__METHOD__));
+            }
             static::$loggedErrors[$messageHash] = true;
         }
         throw $throwable;
