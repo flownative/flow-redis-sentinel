@@ -95,8 +95,8 @@ Flow_Mvc_Routing_Route:
 
 ## Tests
 
-You can adjust the host and port used in the functional tests using the
-environment variables `REDIS_HOST` and `REDIS_PORT`;
+You can adjust the host, port and password used in the functional tests 
+using the environment variables `REDIS_HOST`, `REDIS_PORT` and `REDIS_PASSWORD`.
 
 ## Credits
 

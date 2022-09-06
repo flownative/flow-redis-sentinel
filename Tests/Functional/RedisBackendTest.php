@@ -50,6 +50,7 @@ class RedisBackendTest extends BaseTestCase
     {
         $redisHost = getenv('REDIS_HOST') !== false ? getenv('REDIS_HOST') : '127.0.0.1';
         $redisPort = (int)(getenv('REDIS_PORT') !== false ? getenv('REDIS_PORT') : '6379');
+        $redisPassword = getenv('REDIS_PASSWORD') !== false ? getenv('REDIS_PASSWORD') : '';
 
         try {
             if (!@fsockopen($redisHost, $redisPort)) {
@@ -63,7 +64,8 @@ class RedisBackendTest extends BaseTestCase
             [
                 'hostname' => $redisHost,
                 'port' => $redisPort,
-                'database' => 0
+                'password' => $redisPassword,
+                'database' => 0,
             ]
         );
         $this->cache = $this->createMock(FrontendInterface::class);
