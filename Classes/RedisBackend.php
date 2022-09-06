@@ -67,8 +67,10 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
         $this->client = $this->getRedisClient();
 
         if ($this->logErrors && class_exists(Bootstrap::class) && Bootstrap::$staticObjectManager instanceof ObjectManagerInterface) {
-            $this->logger = Bootstrap::$staticObjectManager->get(LoggerInterface::class);
-            $this->throwableStorage = Bootstrap::$staticObjectManager->get(ThrowableStorageInterface::class);
+            if (Bootstrap::$staticObjectManager->isRegistered(LoggerInterface::class)) {
+                $this->logger = Bootstrap::$staticObjectManager->get(LoggerInterface::class);
+                $this->throwableStorage = Bootstrap::$staticObjectManager->get(ThrowableStorageInterface::class);
+            }
         }
     }
 
