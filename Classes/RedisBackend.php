@@ -513,7 +513,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
     /**
      * @param float|int|string $timeout
      */
-    public function setTimeout(float|int|string $timeout): void
+    public function setTimeout($timeout): void
     {
         $this->timeout = (float)$timeout;
     }
@@ -521,7 +521,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
     /**
      * @param float|int|string $readWriteTimeout
      */
-    public function setReadWriteTimeout(float|int|string $readWriteTimeout): void
+    public function setReadWriteTimeout($readWriteTimeout): void
     {
         $this->readWriteTimeout = (float)$readWriteTimeout;
     }
