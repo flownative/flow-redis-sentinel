@@ -45,6 +45,8 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
     protected ?bool $frozen = null;
     protected string $hostname = '127.0.0.1';
     protected int $port = 6379;
+    protected float $timeout = 5;
+    protected float $readWriteTimeout = 1;
     protected array $sentinels = [];
     protected string $service = 'mymaster';
     protected int $database = 0;
@@ -509,6 +511,22 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
     }
 
     /**
+     * @param float|int|string $timeout
+     */
+    public function setTimeout(float|int|string $timeout): void
+    {
+        $this->timeout = (float)$timeout;
+    }
+
+    /**
+     * @param float|int|string $readWriteTimeout
+     */
+    public function setReadWriteTimeout(float|int|string $readWriteTimeout): void
+    {
+        $this->readWriteTimeout = (float)$readWriteTimeout;
+    }
+
+    /**
      * @param string|bool $value
      * @return string|bool
      */
@@ -557,7 +575,9 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
         try {
             $options = [
                 'parameters' => [
-                    'database' => $this->database
+                    'database' => $this->database,
+                    'timeout' => $this->timeout,
+                    'read_write_timeout' => $this->readWriteTimeout
                 ]
             ];
 

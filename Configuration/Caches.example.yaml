@@ -4,7 +4,11 @@ Flownative_Example_CacheWithStandaloneRedis:
     hostname: '%env:REDIS_HOST%'
     password: '%env:REDIS_PASSWORD%'
     port: 6379
+    timeout: 3
+    readWriteTimeout: 0.5
     database: 0
+    deduplicateErrors: true
+    logErrors: true
 
 Flownative_Example_CacheWithRedisSentinel:
   backend: 'Flownative\RedisSentinel\RedisBackend'
@@ -15,4 +19,8 @@ Flownative_Example_CacheWithRedisSentinel:
       - 'tcp://10.101.213.147:26379'
     service: 'mymaster'
     password: 'password'
+    timeout: 3
+    readWriteTimeout: 0.5
     database: 0
+    deduplicateErrors: true
+    logErrors: true
