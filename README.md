@@ -33,6 +33,8 @@ Flow_Mvc_Routing_Route:
         password: '%env:REDIS_PASSWORD%'
         port: '%env:REDIS_PORT%'
         database: 0
+        timeout: 5
+        readWriteTimeout: 0.5
 
 Flow_Mvc_Routing_Resolve:
     backend: 'Flownative\RedisSentinel\RedisBackend'
@@ -42,6 +44,16 @@ Flow_Mvc_Routing_Resolve:
 
 Of course you can also set concrete values instead of using environment
 variables.
+
+Note that you can set two different timeouts:
+
+- "timeout" (default: 5) specifies the time in seconds to wait while 
+  connecting to Redis
+- "readWriteTimeout" (default: 1) specifies the time to wait during a read 
+  or write operation
+
+You can specify float numbers as timeout values. For example, use `0.5` for 
+setting the timeout to half a second.
 
 When Redis is running in a high availability setup with Sentinel servers, you
 need to configure the Redis Backend to access the Sentinel servers instead of
@@ -60,6 +72,8 @@ Flow_Mvc_Routing_Route:
         service: 'mymaster'
         password: 'a-very-long-password'
         database: 0
+        timeout: 0.5
+        readWriteTimeout: 0.1
 
 Flow_Mvc_Routing_Resolve:
     backend: 'Flownative\RedisSentinel\RedisBackend'
