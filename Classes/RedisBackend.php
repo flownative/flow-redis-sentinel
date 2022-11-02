@@ -435,12 +435,18 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
      * If at least one Sentinel server is specified, this client operates in Sentinel mode
      * and ignores "hostname" and "port".
      *
-     * @param array|string $sentinels Sentinel server addresses, eg. ['tcp://10.101.213.145:26379', 'tcp://…'], or string with comma separated addresses
+     * @param array|string|null $sentinels Sentinel server addresses, eg. ['tcp://10.101.213.145:26379', 'tcp://…'], or string with comma separated addresses
      */
     public function setSentinels($sentinels): void
     {
-        if (is_string($sentinels)) {
-            $this->sentinels = explode(',', $sentinels);
+        if (is_null($sentinels)) {
+            $this->sentinels = [];
+        } elseif (is_string($sentinels)) {
+            if ($sentinels === '') {
+                $this->sentinels = [];
+            } else {
+                $this->sentinels = explode(',', $sentinels);
+            }
         } elseif (is_array($sentinels)) {
             $this->sentinels = $sentinels;
         } else {
