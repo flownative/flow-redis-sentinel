@@ -41,5 +41,10 @@
         "neos": {
             "package-key": "Flownative.RedisSentinel"
         }
+    },
+    "config": {
+        "allow-plugins": {
+            "neos/composer-plugin": true
+        }
     }
 }
