@@ -1,6 +1,6 @@
 {
     "name": "flownative/redis-sentinel",
-    "type": "library",
+    "type": "neos-package",
     "description": "Flow Redis cache backend with Sentinel support",
     "license": "MIT",
     "authors": [
@@ -17,8 +17,8 @@
         "email": "support@flownative.com"
     },
     "require": {
-        "neos/cache": "> 6.3 || 7.*",
-        "neos/cache": "6.* || 7.* || 8.*",
+        "neos/flow": "> 6.3 || 7.* || 8.*",
+        "neos/cache": "> 6.3 || 7.* || 8.*",
         "ext-zlib": "*",
         "predis/predis": "^2.0",
         "php": "7.4.* || 8.0.* || 8.1.*"
@@ -40,6 +40,11 @@
     "extra": {
         "neos": {
             "package-key": "Flownative.RedisSentinel"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "neos/composer-plugin": true
         }
     }
 }
