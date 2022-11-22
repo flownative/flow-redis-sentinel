@@ -66,9 +66,9 @@ Flow_Mvc_Routing_Route:
     backend: 'Flownative\RedisSentinel\RedisBackend'
     backendOptions: &backendOptions
         sentinels:
-            - 'tcp://10.101.213.145:26379'
-            - 'tcp://10.101.213.146:26379'
-            - 'tcp://10.101.213.147:26379'
+            - 'redis://10.101.213.145:26379'
+            - 'redis://10.101.213.146:26379'
+            - 'redis://10.101.213.147:26379'
         service: 'mymaster'
         password: 'a-very-long-password'
         database: 0
@@ -84,6 +84,30 @@ Flow_Mvc_Routing_Resolve:
 Note that "service" is the name of your Redis cluster (which is "mymaster" in
 most default configurations).
 
+If your Sentinels are protected with a password, you must specify the 
+password via the Sentinel URLs (due to how Predis works internally). Note 
+that no username is specified, but you must not forget the colon ":" before 
+the password:
+
+```yaml
+Flow_Mvc_Routing_Route:
+    backend: 'Flownative\RedisSentinel\RedisBackend'
+    backendOptions: &backendOptions
+        sentinels:
+            - 'redis://:sentinel-password@10.101.213.145:26379'
+            - 'redis://:sentinel-password@10.101.213.146:26379'
+            - 'redis://:sentinel-password@10.101.213.147:26379'
+        service: 'mymaster'
+        password: 'a-very-long-password'
+        database: 0
+        timeout: 0.5
+        readWriteTimeout: 0.1
+
+Flow_Mvc_Routing_Resolve:
+    backend: 'Flownative\RedisSentinel\RedisBackend'
+    backendOptions: *backendOptions
+    …
+```
 ## Logging
 
 This cache backend will log errors, such as connection timeouts or other
@@ -118,6 +142,29 @@ Flow_Mvc_Routing_Route:
         …
         logErrors: false
 ```
+
+## Command Line Tool
+
+This package provides CLI commands which can help debugging configuration or 
+connectivity issues.
+
+### redissentinel:list
+
+Displays configuration of Redis Sentinel cache backends, including those 
+backends which are defined as a sub-backend of a Multi Backend. 
+
+![Screenshot](./Documentation/Screenshot-ListCommand.png)
+
+### redissentinel:connect
+
+Tries to connect with the specified cache. If the cache is using a Multi 
+Backend, this command will skip the Multi Backend behavior and instantiate 
+the Redis Sentinel Backend directly. Errors are display and explained, if 
+possible. 
+
+![Screenshot](./Documentation/Screenshot-ConnectCommand.png)
+
+![Screenshot](./Documentation/Screenshot-ConnectCommandWithError.png)
 
 ## Tests
 
