@@ -29,6 +29,7 @@ use Neos\Flow\Log\Utility\LogEnvironment;
 use Neos\Flow\ObjectManagement\ObjectManagerInterface;
 use Predis;
 use Predis\Collection\Iterator;
+use Predis\Connection\Parameters;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 use Throwable;
@@ -593,7 +594,15 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
             }
 
             if ($this->sentinels !== []) {
-                $connectionParameters = $this->sentinels;
+                $connectionParameters = [];
+                foreach ($this->sentinels as $sentinel) {
+                    $parsed = Parameters::parse($sentinel);
+                    $connectionParameters[] = [
+                        'host' => $parsed['host'],
+                        'port' => $parsed['port'],
+                        'password' => $this->password
+                    ];
+                }
                 $options['replication'] = 'sentinel';
                 $options['service'] = $this->service;
             } else {
