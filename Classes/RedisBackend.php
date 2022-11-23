@@ -31,6 +31,7 @@ use Predis;
 use Predis\Collection\Iterator;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
+use Throwable;
 
 class RedisBackend extends IndependentAbstractBackend implements TaggableBackendInterface, IterableBackendInterface, FreezableBackendInterface, PhpCapableBackendInterface, WithStatusInterface
 {
@@ -82,9 +83,9 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
      * @param string $entryIdentifier An identifier for this specific cache entry
      * @param string $data The data to be stored
      * @param array $tags Tags to associate with this cache entry. If the backend does not support tags, this option can be ignored.
-     * @param integer $lifetime Lifetime of this cache entry in seconds. If NULL is specified, the default lifetime is used. "0" means unlimited lifetime.
+     * @param int|null $lifetime Lifetime of this cache entry in seconds. If NULL is specified, the default lifetime is used. "0" means unlimited lifetime.
      * @return void
-     * @throws RuntimeException
+     * @throws Throwable
      * @api
      */
     public function set(string $entryIdentifier, string $data, array $tags = [], int $lifetime = null): void
@@ -110,7 +111,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
                 $this->client->sAdd($this->getPrefixedIdentifier('tags:' . $entryIdentifier), [$tag]);
             }
             $this->client->exec();
-        } catch (\Throwable $throwable) {
+        } catch (Throwable $throwable) {
             $this->handleThrowable($throwable);
         }
     }
@@ -126,7 +127,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
     {
         try {
             return $this->decompress($this->client->get($this->getPrefixedIdentifier('entry:' . $entryIdentifier)));
-        } catch (\Throwable $throwable) {
+        } catch (Throwable $throwable) {
             $this->handleThrowable($throwable);
         }
     }
@@ -142,7 +143,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
     {
         try {
             return (bool)$this->client->exists($this->getPrefixedIdentifier('entry:' . $entryIdentifier));
-        } catch (\Throwable $throwable) {
+        } catch (Throwable $throwable) {
             $this->handleThrowable($throwable);
         }
     }
@@ -178,7 +179,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
             } while ($result === false);
 
             return true;
-        } catch (\Throwable $throwable) {
+        } catch (Throwable $throwable) {
             $this->handleThrowable($throwable);
         }
     }
@@ -218,7 +219,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
                 $this->getPrefixedIdentifier('')
             );
             $this->frozen = null;
-        } catch (\Throwable $throwable) {
+        } catch (Throwable $throwable) {
             $this->handleThrowable($throwable);
         }
     }
@@ -268,7 +269,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
                 $this->getPrefixedIdentifier('tag:' . $tag),
                 $this->getPrefixedIdentifier('')
             );
-        } catch (\Throwable $throwable) {
+        } catch (Throwable $throwable) {
             $this->handleThrowable($throwable);
         }
     }
@@ -298,7 +299,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
     {
         try {
             return $this->client->sMembers($this->getPrefixedIdentifier('tag:' . $tag));
-        } catch (\Throwable $throwable) {
+        } catch (Throwable $throwable) {
             $this->handleThrowable($throwable);
         }
     }
@@ -308,7 +309,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
     {
         try {
             return $this->get(substr($this->getEntryKeyspaceIterator()->current(), $this->entryKeyspaceIteratorKeyPrefixLength));
-        } catch (\Throwable $throwable) {
+        } catch (Throwable $throwable) {
             $this->handleThrowable($throwable);
         }
     }
@@ -318,7 +319,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
     {
         try {
             $this->getEntryKeyspaceIterator()->next();
-        } catch (\Throwable $throwable) {
+        } catch (Throwable $throwable) {
             $this->handleThrowable($throwable);
         }
     }
@@ -328,7 +329,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
     {
         try {
             return substr($this->getEntryKeyspaceIterator()->current(), $this->entryKeyspaceIteratorKeyPrefixLength);
-        } catch (\Throwable $throwable) {
+        } catch (Throwable $throwable) {
             $this->handleThrowable($throwable);
         }
     }
@@ -337,7 +338,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
     {
         try {
             return $this->getEntryKeyspaceIterator()->valid();
-        } catch (\Throwable $throwable) {
+        } catch (Throwable $throwable) {
             $this->handleThrowable($throwable);
         }
     }
@@ -347,7 +348,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
     {
         try {
             $this->getEntryKeyspaceIterator()->rewind();
-        } catch (\Throwable $throwable) {
+        } catch (Throwable $throwable) {
             $this->handleThrowable($throwable);
         }
     }
@@ -383,7 +384,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
                 $result = $this->client->exec();
             } while ($result === false);
             $this->frozen = true;
-        } catch (\Throwable $throwable) {
+        } catch (Throwable $throwable) {
             $this->handleThrowable($throwable);
         }
     }
@@ -400,7 +401,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
                 $this->frozen = (bool)$this->client->exists($this->getPrefixedIdentifier('frozen'));
             }
             return $this->frozen;
-        } catch (\Throwable $throwable) {
+        } catch (Throwable $throwable) {
             $this->handleThrowable($throwable);
         }
     }
@@ -596,10 +597,10 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
                 $options['replication'] = 'sentinel';
                 $options['service'] = $this->service;
             } else {
-                $connectionParameters = 'tcp://' . $this->hostname . ':' . $this->port;
+                $connectionParameters = 'redis://' . $this->hostname . ':' . $this->port;
             }
             return new Predis\Client($connectionParameters, $options);
-        } catch (\Throwable $throwable) {
+        } catch (Throwable $throwable) {
             $this->handleThrowable($throwable);
         }
     }
@@ -614,9 +615,9 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
     }
 
     /**
-     * @throws \Throwable
+     * @throws Throwable
      */
-    private function handleThrowable(\Throwable $throwable): void
+    private function handleThrowable(Throwable $throwable): void
     {
         $messageHash = md5($throwable->getMessage());
         if (!$this->deduplicateErrors || !array_key_exists($messageHash, static::$loggedErrors)) {
