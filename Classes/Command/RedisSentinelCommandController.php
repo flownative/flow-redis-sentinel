@@ -25,6 +25,7 @@ use Neos\Flow\Cache\CacheManager;
 use Neos\Flow\Cli\CommandController;
 use Predis\Client;
 use Predis\Command\Redis\INFO;
+use Predis\Connection\Parameters;
 use Predis\Connection\Replication\SentinelReplication;
 
 /**
@@ -297,7 +298,16 @@ class RedisSentinelCommandController extends CommandController
         }
 
         if ($sentinels !== []) {
-            $connectionParameters = $sentinels;
+            $connectionParameters = [];
+            foreach ($sentinels as $sentinel) {
+                $parsed = Parameters::parse($sentinel);
+                $connectionParameters[] = [
+                    'host' => $parsed['host'],
+                    'port' => $parsed['port'],
+                    'password' => $password
+                ];
+            }
+
             $options['replication'] = 'sentinel';
             $options['service'] = $service;
         } else {

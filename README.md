@@ -84,30 +84,10 @@ Flow_Mvc_Routing_Resolve:
 Note that "service" is the name of your Redis cluster (which is "mymaster" in
 most default configurations).
 
-If your Sentinels are protected with a password, you must specify the 
-password via the Sentinel URLs (due to how Predis works internally). Note 
-that no username is specified, but you must not forget the colon ":" before 
-the password:
+This package will use the same password for all connections, there is 
+currently no support for specifying different passwords for Sentinel and 
+client servers.
 
-```yaml
-Flow_Mvc_Routing_Route:
-    backend: 'Flownative\RedisSentinel\RedisBackend'
-    backendOptions: &backendOptions
-        sentinels:
-            - 'redis://:sentinel-password@10.101.213.145:26379'
-            - 'redis://:sentinel-password@10.101.213.146:26379'
-            - 'redis://:sentinel-password@10.101.213.147:26379'
-        service: 'mymaster'
-        password: 'a-very-long-password'
-        database: 0
-        timeout: 0.5
-        readWriteTimeout: 0.1
-
-Flow_Mvc_Routing_Resolve:
-    backend: 'Flownative\RedisSentinel\RedisBackend'
-    backendOptions: *backendOptions
-    …
-```
 ## Logging
 
 This cache backend will log errors, such as connection timeouts or other
