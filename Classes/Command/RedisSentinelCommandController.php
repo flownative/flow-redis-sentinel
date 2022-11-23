@@ -140,10 +140,10 @@ class RedisSentinelCommandController extends CommandController
                 $backendConfiguration['backendOptions']['password'] ?? '',
                 $backendConfiguration['backendOptions']['service'] ?? '',
                 $backendConfiguration['backendOptions']['hostname'] ?? '',
-                $backendConfiguration['backendOptions']['port'] ?? 6379,
-                $backendConfiguration['backendOptions']['database'] ?? 1,
-                $backendConfiguration['backendOptions']['timeout'] ?? 10,
-                $backendConfiguration['backendOptions']['readWriteTimeout'] ?? 10,
+                $backendConfiguration['backendOptions']['port'] ? (int)$backendConfiguration['backendOptions']['port'] : 6379,
+                $backendConfiguration['backendOptions']['database'] ? (int)$backendConfiguration['backendOptions']['database'] : 1,
+                $backendConfiguration['backendOptions']['timeout'] ? (int)$backendConfiguration['backendOptions']['timeout'] : 10,
+                $backendConfiguration['backendOptions']['readWriteTimeout'] ? (int)$backendConfiguration['backendOptions']['readWriteTimeout'] : 10,
             );
             $this->outputLine('<success>✔</success>');
 
