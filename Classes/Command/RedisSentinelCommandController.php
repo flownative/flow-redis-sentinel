@@ -27,11 +27,15 @@ use Predis\Client;
 use Predis\Command\Redis\INFO;
 use Predis\Connection\Replication\SentinelReplication;
 
-#[Flow\Scope("singleton")]
+/**
+ * @Flow\Scope("singleton")
+ */
 class RedisSentinelCommandController extends CommandController
 {
-    #[Flow\Inject]
-    protected CacheManager $cacheManager;
+    /**
+     * @Flow\Inject
+     */
+    protected ?CacheManager $cacheManager;
 
     /**
      * List Redis Sentinel caches
@@ -175,13 +179,13 @@ class RedisSentinelCommandController extends CommandController
                 $this->outputLine('<error>X</error>');
                 $this->outputLine('<error>%s</error>', [$throwable->getMessage()]);
 
-                if (str_contains($throwable->getMessage(), 'NOAUTH')) {
+                if (str_contains($throwable->getMessage(), 'AUTH')) {
                     $usesPassword = empty(!isset($sentinelConnection) || $sentinelConnection->getParameters()->password);
                     if ($usesPassword) {
                         $this->outputLine('Note: There was <u>no Sentinel password</u> defined in the backend options of this cache backend');
                         $this->outputLine();
                     } else {
-                        $this->outputLine('The connection failed even though there was a password defined in the backend options');
+                        $this->outputLine('The connection failed even though there was a password defined in the backend options.');
                     }
                 }
                 exit(1);
@@ -196,13 +200,13 @@ class RedisSentinelCommandController extends CommandController
             $this->outputLine('<error>X</error>');
             $this->outputLine('<error>%s</error>', [$throwable->getMessage()]);
 
-            if (str_contains($throwable->getMessage(), 'NOAUTH')) {
+            if (str_contains($throwable->getMessage(), 'AUTH')) {
                 $usesPassword = (empty($backendConfiguration['backendOptions']['password']));
                 if ($usesPassword) {
                     $this->outputLine('Note: There was <u>no password</u> defined in the backend options of this cache backend');
                     $this->outputLine();
                 } else {
-                    $this->outputLine('The connection failed even though there was a password defined in the backend options');
+                    $this->outputLine('The connection failed even though there was a password defined in the backend options.');
                 }
             }
 
@@ -297,7 +301,7 @@ class RedisSentinelCommandController extends CommandController
             $options['replication'] = 'sentinel';
             $options['service'] = $service;
         } else {
-            $connectionParameters = 'tcp://' . $hostname . ':' . $port;
+            $connectionParameters = 'redis://' . $hostname . ':' . $port;
         }
         return new Client($connectionParameters, $options);
     }

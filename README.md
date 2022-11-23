@@ -114,7 +114,7 @@ This cache backend will log errors, such as connection timeouts or other
 problems while communicating with the Redis servers.
 
 If a connection error occurs during a request, it is likely, that more errors of
-the same type will happen. Therfore, those messages will, by default, be
+the same type will happen. Therefore, those messages will, by default, be
 de-duplicated: If the messages of an error is identical with one which already
 has been logged during the current CLI / web request, it will not be logged
 another time.
