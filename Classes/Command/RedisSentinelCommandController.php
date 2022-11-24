@@ -35,8 +35,9 @@ class RedisSentinelCommandController extends CommandController
 {
     /**
      * @Flow\Inject
+     * @var CacheManager
      */
-    protected CacheManager $cacheManager;
+    protected $cacheManager;
 
     /**
      * List Redis Sentinel caches
