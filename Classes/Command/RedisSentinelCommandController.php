@@ -53,7 +53,13 @@ class RedisSentinelCommandController extends CommandController
                 if ($cacheConfiguration['backend'] === RedisBackend::class) {
                     $redisSentinelBackends[$cacheIdentifier] = $cacheConfiguration;
                     $redisSentinelBackends[$cacheIdentifier]['multiCache'] = false;
-                } elseif ($cacheConfiguration['backend'] === MultiBackend::class || $cacheConfiguration['backend'] === TaggableMultiBackend::class || $cacheConfiguration['backend'] === IterableMultiBackend::class) {
+                } elseif (
+                    is_subclass_of($cacheConfiguration['backend'], MultiBackend::class, true) ||
+                    (
+                        strpos($cacheConfiguration['backend'], 'MultiBackend') !== false &&
+                        is_array($cacheConfiguration['backendOptions']['backendConfigurations'])
+                    )
+                ) {
                     foreach ($cacheConfiguration['backendOptions']['backendConfigurations'] as $subCacheConfiguration) {
                         if ($subCacheConfiguration['backend'] === RedisBackend::class) {
                             $redisSentinelBackends[$cacheIdentifier] = $subCacheConfiguration;
@@ -67,7 +73,11 @@ class RedisSentinelCommandController extends CommandController
         foreach ($redisSentinelBackends as $cacheIdentifier => $cacheConfiguration) {
             $host = $cacheConfiguration['backendOptions']['hostname'] ?? '';
             if (isset($cacheConfiguration['backendOptions']['sentinels'])) {
-                $host = implode(', ', $cacheConfiguration['backendOptions']['sentinels']);
+                if (is_array($cacheConfiguration['backendOptions']['sentinels'])) {
+                    $host = implode(', ', $cacheConfiguration['backendOptions']['sentinels']);
+                } else {
+                    $host = $cacheConfiguration['backendOptions']['sentinels'];
+                }
             }
 
             $rows[] = [
@@ -109,7 +119,10 @@ class RedisSentinelCommandController extends CommandController
         $cacheBackend = $cache->getBackend();
         $backendConfiguration = $cacheConfigurations[$cacheIdentifier]['backendOptions'];
 
-        if ($cacheBackend instanceof MultiBackend) {
+        if ($cacheBackend instanceof MultiBackend || (
+                strpos(get_class($cacheBackend), 'MultiBackend') !== false &&
+                is_array($backendConfiguration['backendConfigurations'])
+            )) {
             $this->output('Multi Backend detected, looking up actual cache ');
 
             if (!isset($cacheConfigurations[$cacheIdentifier]['backendOptions']['backendConfigurations'])) {
@@ -284,7 +297,7 @@ class RedisSentinelCommandController extends CommandController
         $this->outputLine('<success>Everything seems to work</success>');
     }
 
-    private function getRedisClient(array $sentinels, string $password, string $service, string $hostname, int $port, int $database, int $timeout, int $readWriteTimeout): Client
+    private function getRedisClient(array|string $sentinels, string $password, string $service, string $hostname, int $port, int $database, int $timeout, int $readWriteTimeout): Client
     {
         $options = [
             'parameters' => [
@@ -298,9 +311,10 @@ class RedisSentinelCommandController extends CommandController
             $options['parameters']['password'] = $password;
         }
 
-        if ($sentinels !== []) {
+        if ($sentinels !== [] && $sentinels !== '') {
             $connectionParameters = [];
-            foreach ($sentinels as $sentinel) {
+            $sentinelsArray = is_array($sentinels) ? $sentinels : explode(',', $sentinels);
+            foreach ($sentinelsArray as $sentinel) {
                 $parsed = Parameters::parse($sentinel);
                 $connectionParameters[] = [
                     'host' => $parsed['host'],
