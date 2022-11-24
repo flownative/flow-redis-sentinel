@@ -53,7 +53,13 @@ class RedisSentinelCommandController extends CommandController
                 if ($cacheConfiguration['backend'] === RedisBackend::class) {
                     $redisSentinelBackends[$cacheIdentifier] = $cacheConfiguration;
                     $redisSentinelBackends[$cacheIdentifier]['multiCache'] = false;
-                } elseif ($cacheConfiguration['backend'] === MultiBackend::class || $cacheConfiguration['backend'] === TaggableMultiBackend::class || $cacheConfiguration['backend'] === IterableMultiBackend::class) {
+                } elseif (
+                    is_subclass_of($cacheConfiguration['backend'], MultiBackend::class, true) ||
+                    (
+                        strpos($cacheConfiguration['backend'], 'MultiBackend') !== false &&
+                        is_array($cacheConfiguration['backendOptions']['backendConfigurations'])
+                    )
+                ) {
                     foreach ($cacheConfiguration['backendOptions']['backendConfigurations'] as $subCacheConfiguration) {
                         if ($subCacheConfiguration['backend'] === RedisBackend::class) {
                             $redisSentinelBackends[$cacheIdentifier] = $subCacheConfiguration;
@@ -113,7 +119,10 @@ class RedisSentinelCommandController extends CommandController
         $cacheBackend = $cache->getBackend();
         $backendConfiguration = $cacheConfigurations[$cacheIdentifier]['backendOptions'];
 
-        if ($cacheBackend instanceof MultiBackend) {
+        if ($cacheBackend instanceof MultiBackend || (
+                strpos(get_class($cacheBackend), 'MultiBackend') !== false &&
+                is_array($backendConfiguration['backendConfigurations'])
+            )) {
             $this->output('Multi Backend detected, looking up actual cache ');
 
             if (!isset($cacheConfigurations[$cacheIdentifier]['backendOptions']['backendConfigurations'])) {
