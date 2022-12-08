@@ -278,14 +278,17 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
     /**
      * Unoptimized implementation for flushing multiple tags
      *
-     * @param array $tags
-     * @return int
+     * @param array<string> $tags The tags the entries must have
+     * @return integer The number of entries which have been affected by this flush
+     *
      */
     public function flushByTags(array $tags): int
     {
+        $flushedTags = 0;
         foreach ($tags as $tag) {
-            $this->flushByTag($tag);
+            $flushedTags += $this->flushByTag($tag);
         }
+        return $flushedTags;
     }
 
     /**
