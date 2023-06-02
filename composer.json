@@ -17,8 +17,8 @@
         "email": "support@flownative.com"
     },
     "require": {
-        "neos/flow": "7.* || 8.*",
-        "neos/cache": "7.* || 8.*",
+        "neos/flow": "^7.0 || ^8.0 || ^9.0",
+        "neos/cache": "^7.0 || ^8.0 || ^9.0",
         "ext-zlib": "*",
         "predis/predis": "^2.0",
         "php": "7.4.* || 8.0.* || 8.1.* || 8.2.*"
