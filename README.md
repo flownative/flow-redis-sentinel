@@ -14,7 +14,7 @@ existing project, simply include `flownative/redis-sentinel` into the
 dependencies of your Flow or Neos distribution:
 
 ```bash
-    $ composer require flownative/redis-sentinel:0.*
+    $ composer require flownative/redis-sentinel
 ```
 
 ## Usage
