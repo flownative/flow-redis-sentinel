@@ -62,6 +62,11 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
     protected static array $loggedErrors = [];
 
     /**
+     * Redis allows a maximum of 1024 * 1024 parameters, but we use a lower limit to prevent long blocking calls.
+     */
+    protected int $batchSize = 100000;
+
+    /**
      * @param EnvironmentConfiguration $environmentConfiguration
      * @param array $options Configuration options - depends on the actual backend
      */
@@ -284,11 +289,47 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
      */
     public function flushByTags(array $tags): int
     {
-        $flushedTags = 0;
-        foreach ($tags as $tag) {
-            $flushedTags += $this->flushByTag($tag);
+        if ($this->isFrozen()) {
+            throw new \RuntimeException(sprintf('Cannot add or modify cache entry because the backend of cache "%s" is frozen.', $this->cacheIdentifier), 1647642328);
         }
-        return $flushedTags;
+
+        // language=lua
+        $script = "
+        local total_entries = 0
+        local num_arg = #ARGV
+        for i = 1, num_arg do
+            local entries = redis.call('SMEMBERS', KEYS[i])
+            for k1,entryIdentifier in ipairs(entries) do
+                redis.call('DEL', ARGV[i]..'entry:'..entryIdentifier)
+
+                local tags = redis.call('SMEMBERS', ARGV[i]..'tags:'..entryIdentifier)
+                for k2,tagName in ipairs(tags) do
+                    redis.call('SREM', ARGV[i]..'tag:'..tagName, entryIdentifier)
+                end
+
+                redis.call('DEL', ARGV[i]..'tags:'..entryIdentifier)
+            end
+            redis.call('DEL', KEYS[i])
+            total_entries = total_entries + #entries
+        end
+        return total_entries
+        ";
+
+        $flushedEntriesTotal = 0;
+
+        // Flush tags in batches
+        for ($i = 0, $iMax = count($tags); $i < $iMax; $i += $this->batchSize) {
+            $tagList = array_slice($tags, $i, $this->batchSize);
+            $keys = array_map(function ($tag) {
+                return $this->getPrefixedIdentifier('tag:' . $tag);
+            }, $tagList);
+            $values = array_fill(0, count($keys), $this->getPrefixedIdentifier(''));
+
+            $flushedEntries = $this->client->eval($script, count($keys), ...$keys, ...$values);
+            $flushedEntriesTotal = is_int($flushedEntries) ? $flushedEntries : 0;
+        }
+
+        return $flushedEntriesTotal;
     }
 
     /**
