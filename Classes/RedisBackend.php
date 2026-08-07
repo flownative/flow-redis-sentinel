@@ -94,7 +94,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
      * @throws Throwable
      * @api
      */
-    public function set(string $entryIdentifier, string $data, array $tags = [], int $lifetime = null): void
+    public function set(string $entryIdentifier, string $data, array $tags = [], ?int $lifetime = null): void
     {
         if ($this->isFrozen()) {
             throw new RuntimeException(sprintf('Cannot add or modify cache entry because the backend of cache "%s" is frozen.', $this->cacheIdentifier), 1574776976);
@@ -349,8 +349,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
         }
     }
 
-    #[\ReturnTypeWillChange]
-    public function current()
+    public function current(): mixed
     {
         try {
             return $this->get(substr($this->getEntryKeyspaceIterator()->current(), $this->entryKeyspaceIteratorKeyPrefixLength));
@@ -359,8 +358,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
         }
     }
 
-    #[\ReturnTypeWillChange]
-    public function next()
+    public function next(): void
     {
         try {
             $this->getEntryKeyspaceIterator()->next();
@@ -369,8 +367,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
         }
     }
 
-    #[\ReturnTypeWillChange]
-    public function key()
+    public function key(): mixed
     {
         try {
             return substr($this->getEntryKeyspaceIterator()->current(), $this->entryKeyspaceIteratorKeyPrefixLength);
@@ -388,8 +385,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
         }
     }
 
-    #[\ReturnTypeWillChange]
-    public function rewind()
+    public function rewind(): void
     {
         try {
             $this->getEntryKeyspaceIterator()->rewind();
@@ -536,10 +532,10 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
     }
 
     /**
-     * @param Predis\Client $client
+     * @param Predis\Client|null $client
      * @return void
      */
-    public function setClient(Predis\Client $client = null): void
+    public function setClient(?Predis\Client $client = null): void
     {
         if ($client !== null) {
             $this->client = $client;
