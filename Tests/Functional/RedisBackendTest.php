@@ -2,8 +2,6 @@
 declare(strict_types=1);
 namespace Flownative\RedisSentinel\Tests\Functional;
 
-include_once(__DIR__ . '/../BaseTestCase.php');
-
 /*
  * This file is part of the Flownative.RedisSentinel package.
  *
@@ -19,6 +17,8 @@ use Flownative\RedisSentinel\RedisBackend;
 use Flownative\RedisSentinel\Tests\BaseTestCase;
 use Neos\Cache\EnvironmentConfiguration;
 use Neos\Cache\Frontend\FrontendInterface;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\MockObject\MockObject;
 
 /**
  * Testcase for the redis cache backend
@@ -31,15 +31,9 @@ use Neos\Cache\Frontend\FrontendInterface;
  */
 class RedisBackendTest extends BaseTestCase
 {
-    /**
-     * @var RedisBackend
-     */
-    private $backend;
+    private ?RedisBackend $backend = null;
 
-    /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|FrontendInterface
-     */
-    private $cache;
+    private FrontendInterface&MockObject $cache;
 
     /**
      * Set up test case
@@ -69,7 +63,7 @@ class RedisBackendTest extends BaseTestCase
             ]
         );
         $this->cache = $this->createMock(FrontendInterface::class);
-        $this->cache->expects(self::any())->method('getIdentifier')->will(self::returnValue('TestCache'));
+        $this->cache->method('getIdentifier')->willReturn('TestCache');
         $this->backend->setCache($this->cache);
         $this->backend->flush();
     }
@@ -86,19 +80,15 @@ class RedisBackendTest extends BaseTestCase
         }
     }
 
-    /**
-     * @test
-     */
-    public function setAddsCacheEntry()
+    #[Test]
+    public function setAddsCacheEntry(): void
     {
         $this->backend->set('some_entry', 'foo');
         self::assertEquals('foo', $this->backend->get('some_entry'));
     }
 
-    /**
-     * @test
-     */
-    public function setAddsTags()
+    #[Test]
+    public function setAddsTags(): void
     {
         $this->backend->set('some_entry', 'foo', ['tag1', 'tag2']);
         $this->backend->set('some_other_entry', 'foo', ['tag2', 'tag3']);
@@ -115,10 +105,8 @@ class RedisBackendTest extends BaseTestCase
         self::assertEquals(['some_other_entry'], $this->backend->findIdentifiersByTag('tag3'));
     }
 
-    /**
-     * @test
-     */
-    public function setDoesNotAddMultipleEntries()
+    #[Test]
+    public function setDoesNotAddMultipleEntries(): void
     {
         $this->backend->set('some_entry', 'foo');
         $this->backend->set('some_entry', 'bar');
@@ -131,10 +119,8 @@ class RedisBackendTest extends BaseTestCase
         self::assertEquals(['some_entry'], $entryIdentifiers);
     }
 
-    /**
-     * @test
-     */
-    public function cacheIsIterable()
+    #[Test]
+    public function cacheIsIterable(): void
     {
         for ($i = 0; $i < 100; $i++) {
             $this->backend->set('entry_' . $i, 'foo');
@@ -151,10 +137,8 @@ class RedisBackendTest extends BaseTestCase
         }
     }
 
-    /**
-     * @test
-     */
-    public function freezeFreezesTheCache()
+    #[Test]
+    public function freezeFreezesTheCache(): void
     {
         self::assertFalse($this->backend->isFrozen());
         for ($i = 0; $i < 10; $i++) {
@@ -164,10 +148,8 @@ class RedisBackendTest extends BaseTestCase
         self::assertTrue($this->backend->isFrozen());
     }
 
-    /**
-     * @test
-     */
-    public function flushByTagFlushesEntryByTag()
+    #[Test]
+    public function flushByTagFlushesEntryByTag(): void
     {
         for ($i = 0; $i < 10; $i++) {
             $this->backend->set('entry_' . $i, 'foo', ['tag1', 'tag2']);
@@ -184,10 +166,8 @@ class RedisBackendTest extends BaseTestCase
         self::assertCount(10, $this->backend->findIdentifiersByTag('tag2'));
     }
 
-    /**
-     * @test
-     */
-    public function flushByTagRemovesEntries()
+    #[Test]
+    public function flushByTagRemovesEntries(): void
     {
         $this->backend->set('some_entry', 'foo', ['tag1', 'tag2']);
 
@@ -201,10 +181,8 @@ class RedisBackendTest extends BaseTestCase
         self::assertEquals([], $entryIdentifiers);
     }
 
-    /**
-     * @test
-     */
-    public function flushByTagsFlushesEntriesOfAllGivenTags()
+    #[Test]
+    public function flushByTagsFlushesEntriesOfAllGivenTags(): void
     {
         for ($i = 0; $i < 6; $i++) {
             $this->backend->set('entry_' . $i, 'foo', ['tag_' . $i]);
@@ -221,10 +199,8 @@ class RedisBackendTest extends BaseTestCase
         }
     }
 
-    /**
-     * @test
-     */
-    public function flushFlushesCache()
+    #[Test]
+    public function flushFlushesCache(): void
     {
         for ($i = 0; $i < 10; $i++) {
             $this->backend->set('entry_' . $i, 'foo', ['tag1']);
@@ -234,10 +210,8 @@ class RedisBackendTest extends BaseTestCase
         self::assertFalse($this->backend->has('entry_5'));
     }
 
-    /**
-     * @test
-     */
-    public function removeRemovesEntryFromCache()
+    #[Test]
+    public function removeRemovesEntryFromCache(): void
     {
         for ($i = 0; $i < 10; $i++) {
             $this->backend->set('entry_' . $i, 'foo', ['tag1']);
@@ -260,10 +234,8 @@ class RedisBackendTest extends BaseTestCase
         self::assertCount(9, $actualEntries);
     }
 
-    /**
-     * @test
-     */
-    public function expiredEntriesAreSkippedWhenIterating()
+    #[Test]
+    public function expiredEntriesAreSkippedWhenIterating(): void
     {
         $this->backend->set('entry1', 'foo', [], 1);
         sleep(2);

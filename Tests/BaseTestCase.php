@@ -23,17 +23,6 @@ use RuntimeException;
 abstract class BaseTestCase extends TestCase
 {
     /**
-     * @var array
-     */
-    protected $backupGlobalsBlacklist = ['GLOBALS', 'bootstrap', '__PHPUNIT_BOOTSTRAP'];
-
-    /**
-     * Enable or disable the backup and restoration of static attributes.
-     * @var boolean
-     */
-    protected $backupStaticAttributes = false;
-
-    /**
      * Injects $dependency into property $name of $target
      *
      * This is a convenience method for setting a protected or private property in
