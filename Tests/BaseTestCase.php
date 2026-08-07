@@ -63,7 +63,6 @@ abstract class BaseTestCase extends TestCase
             $target->$methodName($dependency);
         } elseif ($objectReflection->hasProperty($name)) {
             $property = $objectReflection->getProperty($name);
-            $property->setAccessible(true);
             $property->setValue($target, $dependency);
         } else {
             throw new RuntimeException('Could not inject ' . $name . ' into object of type ' . get_class($target));
