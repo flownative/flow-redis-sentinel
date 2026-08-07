@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-namespace Flownative\RedisSentinel\Tests\Functional;
+namespace Flownative\RedisSentinel\Tests\Integration;
 
 /*
  * This file is part of the Flownative.RedisSentinel package.
