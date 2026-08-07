@@ -326,7 +326,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
             $values = array_fill(0, count($keys), $this->getPrefixedIdentifier(''));
 
             $flushedEntries = $this->client->eval($script, count($keys), ...$keys, ...$values);
-            $flushedEntriesTotal = is_int($flushedEntries) ? $flushedEntries : 0;
+            $flushedEntriesTotal += is_int($flushedEntries) ? $flushedEntries : 0;
         }
 
         return $flushedEntriesTotal;
