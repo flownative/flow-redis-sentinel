@@ -76,3 +76,19 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+
+  tests-passed:
+    name: Tests passed
+
+    runs-on: ubuntu-latest
+
+    needs: tests
+    if: always()
+
+    steps:
+      - name: Check the result of the test matrix
+        run: |
+          if [ "${{ needs.tests.result }}" != "success" ]; then
+            echo "The test matrix did not succeed, its result was: ${{ needs.tests.result }}"
+            exit 1
+          fi
