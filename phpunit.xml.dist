@@ -14,8 +14,8 @@
     </php>
 
     <testsuites>
-        <testsuite name="flownative/redis-sentinel functional tests">
-            <directory>./Tests/Functional/</directory>
+        <testsuite name="flownative/redis-sentinel integration tests">
+            <directory>./Tests/Integration/</directory>
         </testsuite>
     </testsuites>
 
