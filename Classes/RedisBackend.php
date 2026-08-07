@@ -349,8 +349,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
         }
     }
 
-    #[\ReturnTypeWillChange]
-    public function current()
+    public function current(): mixed
     {
         try {
             return $this->get(substr($this->getEntryKeyspaceIterator()->current(), $this->entryKeyspaceIteratorKeyPrefixLength));
@@ -359,8 +358,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
         }
     }
 
-    #[\ReturnTypeWillChange]
-    public function next()
+    public function next(): void
     {
         try {
             $this->getEntryKeyspaceIterator()->next();
@@ -369,8 +367,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
         }
     }
 
-    #[\ReturnTypeWillChange]
-    public function key()
+    public function key(): mixed
     {
         try {
             return substr($this->getEntryKeyspaceIterator()->current(), $this->entryKeyspaceIteratorKeyPrefixLength);
@@ -388,8 +385,7 @@ class RedisBackend extends IndependentAbstractBackend implements TaggableBackend
         }
     }
 
-    #[\ReturnTypeWillChange]
-    public function rewind()
+    public function rewind(): void
     {
         try {
             $this->getEntryKeyspaceIterator()->rewind();
