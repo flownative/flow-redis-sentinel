@@ -204,6 +204,26 @@ class RedisBackendTest extends BaseTestCase
     /**
      * @test
      */
+    public function flushByTagsFlushesEntriesOfAllGivenTags()
+    {
+        for ($i = 0; $i < 6; $i++) {
+            $this->backend->set('entry_' . $i, 'foo', ['tag_' . $i]);
+        }
+
+        // Force the tags to be flushed in more than one batch:
+        $this->inject($this->backend, 'batchSize', 2);
+
+        $count = $this->backend->flushByTags(['tag_0', 'tag_1', 'tag_2', 'tag_3', 'tag_4', 'tag_5']);
+        self::assertEquals(6, $count, 'flushByTags returns amount of flushed entries');
+
+        for ($i = 0; $i < 6; $i++) {
+            self::assertFalse($this->backend->has('entry_' . $i));
+        }
+    }
+
+    /**
+     * @test
+     */
     public function flushFlushesCache()
     {
         for ($i = 0; $i < 10; $i++) {
